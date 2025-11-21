@@ -52,18 +52,21 @@ async function scrapeDroneNewsFromGoogle() {
               title.includes(keyword) || url.includes(keyword)
             );
             
-            // 只包含新聞網站
+            // 只包含新聞網站（放寬條件）
             const newsKeywords = [
               'news', 'hk01', 'mingpao', 'scmp', 'rthk', 'tvb',
-              'singtao', 'oriental', 'bastille', 'inmedia',
-              '新聞', '報', '傳媒', 'post', 'times', 'gazette'
+              'singtao', 'oriental', 'bastille', 'inmedia', 'wenweipo',
+              '新聞', '報', '傳媒', 'post', 'times', 'gazette', 'xinhua',
+              'china', 'hong kong', 'cgtn', 'daily', 'standard', 'press'
             ];
             
             const isNewsSource = newsKeywords.some(keyword => 
-              url.includes(keyword) || title.includes(keyword)
+              url.includes(keyword) || title.includes(keyword) || 
+              (item.source && item.source.title && item.source.title.toLowerCase().includes(keyword))
             );
             
-            return !hasExcludeKeyword && (isNewsSource || item.source.title.includes('News'));
+            // 如果有排除關鍵詞就排除，否則只要是新聞源就保留
+            return !hasExcludeKeyword && isNewsSource;
           })
           .map(item => {
             // 使用新聞實際發布日期
@@ -72,7 +75,10 @@ async function scrapeDroneNewsFromGoogle() {
               publishDate = new Date(item.published);
             } else if (item.pubDate) {
               publishDate = new Date(item.pubDate);
+            } else if (item.isoDate) {
+              publishDate = new Date(item.isoDate);
             }
+            // 如果所有日期字段都是undefined，使用當前時間（假設是最新新聞）
             
             return {
               title: item.title,
@@ -82,12 +88,12 @@ async function scrapeDroneNewsFromGoogle() {
               url: item.link,
             };
           })
-          // 過濾掉3天前的新聞
+          // 過濾掉7天前的新聞
           .filter(article => {
             const articleDate = new Date(article.date);
             const isRecent = articleDate >= threeDaysAgo;
             if (!isRecent) {
-              console.log(`過濾掉舊新聞: ${article.title} (日期: ${articleDate.toISOString()})`);
+              console.log(`過濾掉舊新聞: ${article.title.substring(0, 50)} (日期: ${articleDate.toISOString()})`);
             }
             return isRecent;
           });
