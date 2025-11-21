@@ -2,6 +2,7 @@ const classifier = require('./newsClassifier');
 const webScraper = require('./webScraper');
 const rssScraper = require('./rssScraper');
 const googleNewsScraper = require('./googleNewsScraper');
+const hkNewsScraper = require('./hkNewsScraper');
 
 // 緩存設置
 let newsCache = null;
@@ -27,32 +28,30 @@ async function getDroneNews() {
     // 優先嘗試從Google新聞獲取新聞
     let scrapedNews = [];
     
+    // 1. 從 Google News 獲取
     try {
-      scrapedNews = await googleNewsScraper.scrapeDroneNewsFromGoogle();
-      console.log(`從Google新聞獲取到 ${scrapedNews.length} 條新聞`);
-      
-      // 如果Google新聞沒有返回結果，嘗試搜索特定關鍵詞
-      if (scrapedNews.length === 0) {
-        scrapedNews = await googleNewsScraper.searchNews('無人機 香港');
-        console.log(`從Google新聞搜索獲取到 ${scrapedNews.length} 條新聞`);
-      }
+      const googleNews = await googleNewsScraper.scrapeDroneNewsFromGoogle();
+      console.log(`從Google新聞獲取到 ${googleNews.length} 條新聞`);
+      scrapedNews = scrapedNews.concat(googleNews);
     } catch (googleError) {
       console.log('Google新聞抓取失敗:', googleError.message);
-      
-      // 如果Google新聞抓取失敗，嘗試RSS源
+    }
+    
+    // 2. 從香港本地新聞網站獲取
+    try {
+      const hkNews = await hkNewsScraper.scrapeAllHKNews();
+      console.log(`從香港本地網站獲取到 ${hkNews.length} 條新聞`);
+      scrapedNews = scrapedNews.concat(hkNews);
+    } catch (hkError) {
+      console.log('香港本地網站抓取失敗:', hkError.message);
+    }
+    // 3. 如果仍然沒有新聞，嘗試RSS源
+    if (scrapedNews.length === 0) {
       try {
         scrapedNews = await rssScraper.scrapeDroneNewsFromRSS();
         console.log(`從RSS源獲取到 ${scrapedNews.length} 條新聞`);
       } catch (rssError) {
-        console.log('RSS抓取失敗，嘗試網頁抓取:', rssError.message);
-        
-        // 如果RSS抓取失敗，嘗試網頁抓取
-        try {
-          scrapedNews = await webScraper.scrapeDroneNews();
-          console.log(`從網頁獲取到 ${scrapedNews.length} 條新聞`);
-        } catch (webError) {
-          console.log('網頁抓取也失敗:', webError.message);
-        }
+        console.log('RSS抓取失敗:', rssError.message);
       }
     }
     
