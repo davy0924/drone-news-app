@@ -8,21 +8,23 @@ const googleNews = new GoogleNewsRss();
  */
 async function scrapeDroneNewsFromGoogle() {
   try {
-    // 計算3天前的日期
+    // 計算7天前的日期（增加顯示範圍）
     const threeDaysAgo = new Date();
-    threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+    threeDaysAgo.setDate(threeDaysAgo.getDate() - 7);
     
     console.log('=== 新聞抓取開始 ===');
     console.log('當前時間:', new Date().toISOString());
-    console.log('3天前:', threeDaysAgo.toISOString());
+    console.log('7天前:', threeDaysAgo.toISOString());
     console.log('只顯示', threeDaysAgo.toISOString(), '之後的新聞');
     
     // 搜索香港無人機相關新聞，限制為新聞網站
     const queries = [
-      '香港 無人機',
-      '無人機 香港',
-      'drone Hong Kong',
-      'UAV 香港'
+      'Hong Kong drone',
+      'drone Hong Kong news',
+      '香港 無人機 新聞',
+      'HK UAV',
+      '香港無人機',
+      'Hong Kong unmanned aircraft'
     ];
     
     let allArticles = [];

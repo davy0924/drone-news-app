@@ -62,9 +62,9 @@ async function scrapeFromRSS(rssUrl, sourceName) {
   try {
     const feed = await parser.parseURL(rssUrl);
     
-    // 計算3天前的日期
+    // 計算7天前的日期
     const threeDaysAgo = new Date();
-    threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+    threeDaysAgo.setDate(threeDaysAgo.getDate() - 7);
     
     const articles = feed.items.slice(0, 20).map(item => {
       // 檢查標題或內容是否包含無人機相關關鍵詞

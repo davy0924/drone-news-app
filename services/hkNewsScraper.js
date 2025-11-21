@@ -106,9 +106,9 @@ async function scrapeAllHKNews() {
     }
   });
   
-  // 過濾最近3天的新聞
+  // 過濾最近7天的新聞
   const threeDaysAgo = new Date();
-  threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+  threeDaysAgo.setDate(threeDaysAgo.getDate() - 7);
   
   const recentArticles = allArticles.filter(article => {
     const articleDate = new Date(article.date);
