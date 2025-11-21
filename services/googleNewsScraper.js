@@ -12,6 +12,11 @@ async function scrapeDroneNewsFromGoogle() {
     const threeDaysAgo = new Date();
     threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
     
+    console.log('=== 新聞抓取開始 ===');
+    console.log('當前時間:', new Date().toISOString());
+    console.log('3天前:', threeDaysAgo.toISOString());
+    console.log('只顯示', threeDaysAgo.toISOString(), '之後的新聞');
+    
     // 搜索香港無人機相關新聞，限制為新聞網站
     const queries = [
       '香港 無人機',
@@ -78,7 +83,11 @@ async function scrapeDroneNewsFromGoogle() {
           // 過濾掉3天前的新聞
           .filter(article => {
             const articleDate = new Date(article.date);
-            return articleDate >= threeDaysAgo;
+            const isRecent = articleDate >= threeDaysAgo;
+            if (!isRecent) {
+              console.log(`過濾掉舊新聞: ${article.title} (日期: ${articleDate.toISOString()})`);
+            }
+            return isRecent;
           });
         
         allArticles = allArticles.concat(articles);
@@ -92,6 +101,16 @@ async function scrapeDroneNewsFromGoogle() {
       .map(url => allArticles.find(a => a.url === url));
     
     console.log(`從Google新聞獲取到 ${uniqueArticles.length} 條新聞`);
+    if (uniqueArticles.length > 0) {
+      console.log('新聞日期範圍:');
+      const dates = uniqueArticles.map(a => new Date(a.date));
+      const minDate = new Date(Math.min(...dates));
+      const maxDate = new Date(Math.max(...dates));
+      console.log(`  最早: ${minDate.toISOString()}`);
+      console.log(`  最晚: ${maxDate.toISOString()}`);
+    }
+    console.log('=== 新聞抓取結束 ===\n');
+    
     return uniqueArticles;
   } catch (error) {
     console.error('從Google新聞獲取新聞失敗:', error.message);

@@ -24,4 +24,8 @@ Thumbs.db
 # Build
 dist/
 build/
+
+# Vercel
+.vercel
 node_modules
+.vercel

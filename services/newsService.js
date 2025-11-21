@@ -3,12 +3,27 @@ const webScraper = require('./webScraper');
 const rssScraper = require('./rssScraper');
 const googleNewsScraper = require('./googleNewsScraper');
 
+// 緩存設置
+let newsCache = null;
+let cacheTime = null;
+const CACHE_DURATION = 30 * 60 * 1000; // 30分鐘緩存
+
 /**
  * 獲取無人機相關新聞
  * @returns {Promise<Array>} 新聞列表
  */
 async function getDroneNews() {
   try {
+    // 檢查緩存是否有效
+    const now = Date.now();
+    if (newsCache && cacheTime && (now - cacheTime < CACHE_DURATION)) {
+      console.log('使用緩存的新聞數據');
+      return newsCache;
+    }
+    
+    console.log('開始獲取最新新聞...');
+    console.log('當前時間:', new Date().toISOString());
+    
     // 優先嘗試從Google新聞獲取新聞
     let scrapedNews = [];
     
@@ -70,10 +85,17 @@ async function getDroneNews() {
     }
     
     // 添加ID以便於識別
-    return scrapedNews.map((news, index) => ({
+    const newsWithIds = scrapedNews.map((news, index) => ({
       ...news,
       id: index + 1
     }));
+    
+    // 更新緩存
+    newsCache = newsWithIds;
+    cacheTime = Date.now();
+    console.log(`緩存已更新，共 ${newsWithIds.length} 條新聞`);
+    
+    return newsWithIds;
   } catch (error) {
     console.error('獲取新聞失敗:', error.message);
     
